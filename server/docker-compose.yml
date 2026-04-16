@@ -1,0 +1,19 @@
+﻿version: "3.8"
+
+services:
+  parental-control:
+    image: python:3.11-slim
+    container_name: parental-control
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./data:/app/data
+      - ./server:/app/server
+    working_dir: /app
+    command: >
+      bash -c "pip install flask flask-cors &&
+               mkdir -p /app/static &&
+               cp /app/server/static/index.html /app/static/ 2>/dev/null || true &&
+               cp /app/server/static/manifest.json /app/static/ 2>/dev/null || true &&
+               python /app/server/server.py"
