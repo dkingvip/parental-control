@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="/manifest.json">
+  <title>家长控制台</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --card2: #273449;
+      --blue: #3b82f6;
+      --blue2: #60a5fa;
+      --green: #22c55e;
+      --red: #ef4444;
+      --orange: #f59e0b;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --border: #334155;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      min-height: 100vh;
+      padding: 0 0 100px;
+    }
+
+    /* === 头部 === */
+    .header {
+      background: linear-gradient(135deg, #1e3a5f, #1e293b);
+      padding: 20px 20px 60px;
+      position: relative;
+    }
+
+    .header h1 {
+      font-size: 22px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .header .subtitle {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .online-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(34,197,94,0.15);
+      color: var(--green);
+      font-size: 12px;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-weight: 500;
+    }
+
+    .online-badge.offline {
+      background: rgba(239,68,68,0.15);
+      color: var(--red);
+    }
+
+    /* === 卡片浮动效果 === */
+    .cards {
+      padding: 0 16px;
+      margin-top: -40px;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 16px;
+      border: 1px solid var(--border);
+    }
+
+    .card-title {
+      font-size: 13px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 14px;
+      font-weight: 600;
+    }
+
+    /* === 登录 === */
+    .login-card {
+      display: none;
+    }
+
+    .login-card.active { display: block; }
+
+    .input-group { margin-bottom: 14px; }
+
+    .input-group label {
+      display: block;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .input-group input {
+      width: 100%;
+      background: var(--card2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      color: var(--text);
+      font-size: 15px;
+      outline: none;
+      transition: border 0.2s;
+    }
+
+    .input-group input:focus {
+      border-color: var(--blue);
+    }
+
+    /* === 生成密码 === */
+    .main-content { display: none; }
+    .main-content.active { display: block; }
+
+    /* 时长快捷按钮 */
+    .duration-btns {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .duration-btn {
+      flex: 1;
+      min-width: 60px;
+      background: var(--card2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 6px;
+      color: var(--text);
+      font-size: 13px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s;
+      border: none;
+    }
+
+    .duration-btn.active {
+      background: var(--blue);
+      color: white;
+      font-weight: 600;
+    }
+
+    .duration-btn span {
+      display: block;
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .btn-generate {
+      width: 100%;
+      background: var(--blue);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 16px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-generate:hover { background: var(--blue2); }
+    .btn-generate:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* === 密码显示 === */
+    .code-display {
+      display: none;
+      text-align: center;
+      padding: 20px;
+      background: linear-gradient(135deg, #1e3a5f, #1a2744);
+      border-radius: 16px;
+      margin-bottom: 16px;
+      border: 1px solid #2a3f6f;
+    }
+
+    .code-display.show { display: block; }
+
+    .code-display .label {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .code-display .code {
+      font-size: 48px;
+      font-weight: 700;
+      color: #fbbf24;
+      letter-spacing: 8px;
+      font-family: 'SF Mono', 'Consolas', monospace;
+      text-shadow: 0 0 20px rgba(251,191,36,0.3);
+    }
+
+    .code-display .meta {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 8px;
+    }
+
+    /* === 当前状态 === */
+    .status-list { display: flex; flex-direction: column; gap: 10px; }
+
+    .device-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--card2);
+      border-radius: 12px;
+      padding: 14px 16px;
+    }
+
+    .device-item .icon {
+      font-size: 24px;
+    }
+
+    .device-item .info { flex: 1; }
+
+    .device-item .name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .device-item .remaining {
+      font-size: 12px;
+      color: var(--green);
+      margin-top: 2px;
+    }
+
+    .device-item .remaining.offline {
+      color: var(--muted);
+    }
+
+    .btn-disconnect {
+      background: rgba(239,68,68,0.15);
+      color: var(--red);
+      border: 1px solid rgba(239,68,68,0.3);
+      border-radius: 8px;
+      padding: 6px 14px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-disconnect:hover {
+      background: rgba(239,68,68,0.3);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 30px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .empty-state .emoji { font-size: 40px; margin-bottom: 10px; }
+
+    /* === 标签页 === */
+    .tab-bar {
+      display: flex;
+      background: var(--card);
+      border-top: 1px solid var(--border);
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+    }
+
+    .tab-item {
+      flex: 1;
+      text-align: center;
+      padding: 12px 0;
+      font-size: 12px;
+      color: var(--muted);
+      cursor: pointer;
+      transition: color 0.2s;
+      border: none;
+      background: none;
+    }
+
+    .tab-item.active { color: var(--blue); }
+
+    .tab-item .tab-icon { font-size: 20px; display: block; margin-bottom: 2px; }
+
+    /* === Tab 内容 === */
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* === 历史记录 === */
+    .history-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .history-item:last-child { border-bottom: none; }
+
+    .history-item .action-badge {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-weight: 600;
+    }
+
+    .action-GENERATE { background: rgba(59,130,246,0.15); color: var(--blue); }
+    .action-UNLOCK { background: rgba(34,197,94,0.15); color: var(--green); }
+    .action-FORCE_OFF { background: rgba(239,68,68,0.15); color: var(--red); }
+
+    .history-item .time {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .history-item .detail {
+      flex: 1;
+      font-size: 13px;
+      color: var(--text);
+    }
+
+    /* === Toast === */
+    .toast {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-100px);
+      background: var(--card);
+      color: var(--text);
+      padding: 12px 24px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      font-size: 14px;
+      z-index: 1000;
+      transition: transform 0.3s;
+      pointer-events: none;
+    }
+
+    .toast.show { transform: translateX(-50%) translateY(0); }
+    .toast.error { border-color: var(--red); }
+    .toast.success { border-color: var(--green); }
+
+    /* === Loading === */
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* === 设置 === */
+    .setting-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .setting-row:last-child { border-bottom: none; }
+
+    .setting-row .label { font-size: 14px; }
+    .setting-row .value { font-size: 13px; color: var(--muted); }
+
+    .btn-change-pwd {
+      background: var(--card2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    /* === 统计 === */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .stat-box {
+      background: var(--card2);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .stat-box .num {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--blue);
+    }
+
+    .stat-box .num.green { color: var(--green); }
+    .stat-box .num.red { color: var(--red); }
+
+    .stat-box .desc {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- 头部 -->
+<div class="header">
+  <h1>🛡️ 家长控制台</h1>
+  <div class="subtitle">
+    <span class="online-badge" id="serverBadge">
+      <span>●</span> <span id="serverStatus">检测中</span>
+    </span>
+  </div>
+</div>
+
+<div class="cards">
+  <!-- 登录卡片 -->
+  <div class="card login-card active" id="loginCard">
+    <div class="card-title">🔐 家长登录</div>
+    <div class="input-group">
+      <label>家长密码</label>
+      <input type="password" id="inputPassword" placeholder="输入家长密码" />
+    </div>
+    <button class="btn-generate" onclick="doLogin()">登录</button>
+    <p style="font-size:12px;color:var(--muted);text-align:center;margin-top:12px;">
+      默认密码: parent123<br>首次登录后请修改
+    </p>
+  </div>
+
+  <!-- 主界面 -->
+  <div class="main-content" id="mainContent">
+
+    <!-- 密码显示 -->
+    <div class="code-display" id="codeDisplay">
+      <div class="label">一次性上网密码</div>
+      <div class="code" id="generatedCode">------</div>
+      <div class="meta" id="codeMeta">有效期 · 分钟</div>
+    </div>
+
+    <!-- 快捷生成 -->
+    <div class="card">
+      <div class="card-title">🔑 生成上网密码</div>
+      <div class="duration-btns">
+        <button class="duration-btn active" onclick="selectDuration(15, this)">15<span>分钟</span></button>
+        <button class="duration-btn" onclick="selectDuration(30, this)">30<span>分钟</span></button>
+        <button class="duration-btn" onclick="selectDuration(60, this)">1<span>小时</span></button>
+        <button class="duration-btn" onclick="selectDuration(120, this)">2<span>小时</span></button>
+      </div>
+      <div class="input-group">
+        <label>设备名称（告诉孩子用）</label>
+        <input type="text" id="inputDevice" value="平板01" placeholder="如：平板01" />
+      </div>
+      <button class="btn-generate" id="btnGenerate" onclick="generateCode()">生成密码</button>
+    </div>
+
+    <!-- 当前状态 -->
+    <div class="card">
+      <div class="card-title">📡 当前上网状态</div>
+      <div class="status-list" id="statusList">
+        <div class="empty-state">
+          <div class="emoji">📶</div>
+          <div>暂无设备上网</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 今日统计 -->
+    <div class="card">
+      <div class="card-title">📊 今日统计</div>
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div class="num" id="statGenerate">0</div>
+          <div class="desc">生成密码</div>
+        </div>
+        <div class="stat-box">
+          <div class="num green" id="statUnlock">0</div>
+          <div class="desc">成功解锁</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- 底部标签栏 -->
+<div class="tab-bar" id="tabBar" style="display:none">
+  <button class="tab-item active" onclick="switchTab('home')">
+    <span class="tab-icon">🏠</span>首页
+  </button>
+  <button class="tab-item" onclick="switchTab('history')">
+    <span class="tab-icon">📋</span>记录
+  </button>
+  <button class="tab-item" onclick="switchTab('settings')">
+    <span class="tab-icon">⚙️</span>设置
+  </button>
+</div>
+
+<!-- 历史记录 Tab -->
+<div class="tab-content" id="tab-history">
+  <div class="cards" style="margin-top: 16px">
+    <div class="card">
+      <div class="card-title">📋 使用记录</div>
+      <div id="historyList">
+        <div class="empty-state"><div class="emoji">📭</div><div>暂无记录</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 设置 Tab -->
+<div class="tab-content" id="tab-settings">
+  <div class="cards" style="margin-top: 16px">
+    <div class="card">
+      <div class="card-title">⚙️ 设置</div>
+      <div class="setting-row">
+        <div>
+          <div class="label">修改密码</div>
+        </div>
+        <button class="btn-change-pwd" onclick="showChangePwd()">修改</button>
+      </div>
+      <div class="setting-row">
+        <div>
+          <div class="label">服务端地址</div>
+          <div class="value" id="serverUrlDisplay">自动检测</div>
+        </div>
+      </div>
+      <div class="setting-row">
+        <div>
+          <div class="label">添加应用到桌面</div>
+        </div>
+        <button class="btn-change-pwd" onclick="installPWA()">添加到桌面</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ========== 全局状态 ==========
+let currentPassword = '';
+let selectedDuration = 15;
+let statusTimer = null;
+
+const BASE_URL = window.location.origin;
+
+// ========== Toast ==========
+function showToast(msg, type = 'info') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  setTimeout(() => { t.className = 'toast'; }, 3000);
+}
+
+// ========== 登录 ==========
+function doLogin() {
+  const pwd = document.getElementById('inputPassword').value;
+  if (!pwd) { showToast('请输入密码', 'error'); return; }
+  currentPassword = pwd;
+  document.getElementById('loginCard').classList.remove('active');
+  document.getElementById('mainContent').classList.add('active');
+  document.getElementById('tabBar').style.display = 'flex';
+  checkServer();
+  refreshStatus();
+  refreshHistory();
+  if (statusTimer) clearInterval(statusTimer);
+  statusTimer = setInterval(() => { checkServer(); refreshStatus(); }, 10000);
+}
+
+// ========== 时长选择 ==========
+function selectDuration(min, btn) {
+  selectedDuration = min;
+  document.querySelectorAll('.duration-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ========== 生成密码 ==========
+async function generateCode() {
+  const btn = document.getElementById('btnGenerate');
+  const deviceId = document.getElementById('inputDevice').value.trim() || '平板01';
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> 生成中...';
+
+  try {
+    const resp = await fetch(BASE_URL + '/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        parent_password: currentPassword,
+        device_id: deviceId,
+        duration_minutes: selectedDuration
+      })
+    });
+
+    const data = await resp.json();
+
+    if (data.success) {
+      document.getElementById('generatedCode').textContent = data.code;
+      document.getElementById('codeMeta').textContent =
+        `设备: ${data.device_id} · ${data.duration_minutes}分钟 · 一次性使用`;
+      document.getElementById('codeDisplay').classList.add('show');
+      showToast('密码已生成！', 'success');
+      refreshStatus();
+      refreshHistory();
+    } else {
+      showToast(data.message || '生成失败', 'error');
+      if (resp.status === 401) {
+        currentPassword = '';
+        document.getElementById('inputPassword').value = '';
+        document.getElementById('loginCard').classList.add('active');
+        document.getElementById('mainContent').classList.remove('active');
+        document.getElementById('tabBar').style.display = 'none';
+        showToast('密码错误，请重新登录', 'error');
+      }
+    }
+  } catch (e) {
+    showToast('网络错误: ' + e.message, 'error');
+  }
+
+  btn.disabled = false;
+  btn.textContent = '生成密码';
+}
+
+// ========== 刷新状态 ==========
+async function refreshStatus() {
+  try {
+    const resp = await fetch(BASE_URL + '/api/status');
+    const data = await resp.json();
+
+    // 统计
+    document.getElementById('statGenerate').textContent = data.stats.GENERATE || 0;
+    document.getElementById('statUnlock').textContent = data.stats.UNLOCK || 0;
+
+    // 设备列表
+    const list = document.getElementById('statusList');
+    if (data.active_sessions.length === 0) {
+      list.innerHTML = '<div class="empty-state"><div class="emoji">📶</div><div>暂无设备上网</div></div>';
+    } else {
+      list.innerHTML = data.active_sessions.map(s => {
+        const mins = Math.floor(s.remaining_seconds / 60);
+        const secs = s.remaining_seconds % 60;
+        return `<div class="device-item">
+          <span class="icon">📱</span>
+          <div class="info">
+            <div class="name">${s.device_id}</div>
+            <div class="remaining">剩余 ${mins}分${secs}秒</div>
+          </div>
+          <button class="btn-disconnect" onclick="disconnect('${s.device_id}')">断网</button>
+        </div>`;
+      }).join('');
+    }
+  } catch (e) {
+    console.error('refreshStatus error:', e);
+  }
+}
+
+// ========== 强制断网 ==========
+async function disconnect(deviceId) {
+  if (!confirm(`确定要强制断开「${deviceId}」的网络吗？`)) return;
+  try {
+    const resp = await fetch(BASE_URL + '/api/disconnect', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ device_id: deviceId })
+    });
+    const data = await resp.json();
+    if (data.success) {
+      showToast('已断开 ' + deviceId, 'success');
+      refreshStatus();
+      refreshHistory();
+    }
+  } catch (e) {
+    showToast('操作失败', 'error');
+  }
+}
+
+// ========== 历史记录 ==========
+async function refreshHistory() {
+  try {
+    const resp = await fetch(BASE_URL + '/api/history?limit=30');
+    const data = await resp.json();
+    const list = document.getElementById('historyList');
+
+    if (!data.history || data.history.length === 0) {
+      list.innerHTML = '<div class="empty-state"><div class="emoji">📭</div><div>暂无记录</div></div>';
+      return;
+    }
+
+    list.innerHTML = data.history.map(h => {
+      const badgeClass = h.action === 'GENERATE' ? 'action-GENERATE'
+                       : h.action === 'UNLOCK' ? 'action-UNLOCK'
+                       : 'action-FORCE_OFF';
+      const badgeText = h.action === 'GENERATE' ? '生成'
+                      : h.action === 'UNLOCK' ? '解锁'
+                      : '强制断网';
+      const t = new Date(h.timestamp).toLocaleString('zh-CN');
+
+      return `<div class="history-item">
+        <span class="action-badge ${badgeClass}">${badgeText}</span>
+        <div class="detail" style="flex:1">
+          <div>${h.device_id}${h.duration ? ' · ' + h.duration + '分钟' : ''}</div>
+          <div class="time">${t}</div>
+        </div>
+      </div>`;
+    }).join('');
+  } catch (e) {
+    console.error('refreshHistory error:', e);
+  }
+}
+
+// ========== 服务器状态检测 ==========
+async function checkServer() {
+  const badge = document.getElementById('serverBadge');
+  const status = document.getElementById('serverStatus');
+  try {
+    const resp = await fetch(BASE_URL + '/api/status');
+    if (resp.ok) {
+      badge.className = 'online-badge';
+      status.textContent = '服务端正常';
+    }
+  } catch (e) {
+    badge.className = 'online-badge offline';
+    status.textContent = '服务端离线';
+  }
+}
+
+// ========== Tab 切换 ==========
+function switchTab(tab) {
+  document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  document.getElementById('mainContent').classList.remove('active');
+  document.getElementById('loginCard').classList.remove('active');
+
+  if (tab === 'home') {
+    document.getElementById('mainContent').classList.add('active');
+    document.querySelectorAll('.tab-item')[0].classList.add('active');
+  } else if (tab === 'history') {
+    document.getElementById('tab-history').classList.add('active');
+    document.querySelectorAll('.tab-item')[1].classList.add('active');
+    refreshHistory();
+  } else if (tab === 'settings') {
+    document.getElementById('tab-settings').classList.add('active');
+    document.querySelectorAll('.tab-item')[2].classList.add('active');
+  }
+}
+
+// ========== 修改密码 ==========
+async function showChangePwd() {
+  const oldPwd = prompt('请输入旧密码：');
+  if (!oldPwd) return;
+  const newPwd = prompt('请输入新密码：');
+  if (!newPwd) return;
+  if (newPwd.length < 4) { showToast('密码至少4位', 'error'); return; }
+
+  try {
+    const resp = await fetch(BASE_URL + '/api/change-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ old_password: oldPwd, new_password: newPwd })
+    });
+    const data = await resp.json();
+    if (data.success) {
+      currentPassword = newPwd;
+      showToast('密码修改成功', 'success');
+    } else {
+      showToast(data.message || '修改失败', 'error');
+    }
+  } catch (e) {
+    showToast('网络错误', 'error');
+  }
+}
+
+// ========== PWA 安装 ==========
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+});
+
+async function installPWA() {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    if (outcome === 'accepted') showToast('已添加到桌面！', 'success');
+  } else {
+    showToast('请在浏览器菜单中找"添加到主屏幕"', 'info');
+  }
+}
+
+// ========== 启动 ==========
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('serverUrlDisplay').textContent = window.location.origin;
+
+  // 密码输入回车
+  document.getElementById('inputPassword').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doLogin();
+  });
+
+  // 尝试自动检测服务器（如果有localStorage记录）
+  const savedPwd = localStorage.getItem('parent_pwd');
+  if (savedPwd) {
+    document.getElementById('inputPassword').value = savedPwd;
+  }
+  checkServer();
+});
+</script>
+
+</body>
+</html>
