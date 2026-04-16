@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="鏈嶅姟绔湴鍧€锛堢兢鏅朓P锛?
+        android:textSize="14sp"
+        android:textColor="#666666" />
+
+    <EditText
+        android:id="@+id/etServerUrl"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:hint="http://192.168.1.10:8080"
+        android:inputType="textUri"
+        android:background="@drawable/edittext_bg"
+        android:padding="12dp"
+        android:layout_marginTop="4dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="璁剧疆瀹堕暱瀵嗙爜锛?浣嶄互涓婏級"
+        android:textSize="14sp"
+        android:textColor="#666666"
+        android:layout_marginTop="12dp" />
+
+    <EditText
+        android:id="@+id/etParentPassword"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:hint="瀹堕暱瀵嗙爜"
+        android:inputType="textPassword"
+        android:background="@drawable/edittext_bg"
+        android:padding="12dp"
+        android:layout_marginTop="4dp" />
+
+    <EditText
+        android:id="@+id/etConfirmPassword"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:hint="纭瀵嗙爜"
+        android:inputType="textPassword"
+        android:background="@drawable/edittext_bg"
+        android:padding="12dp"
+        android:layout_marginTop="8dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="馃挕 瀵嗙爜鐢ㄤ簬鍗歌浇App淇濇姢锛岃鐗㈣"
+        android:textSize="12sp"
+        android:textColor="#FF9800"
+        android:layout_marginTop="8dp" />
+
+</LinearLayout>
